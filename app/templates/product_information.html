@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Information</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="location.href='/'">Volver al Inicio</button>
+    <h1>Product Information</h1>
+    <form id="productInfoForm">
+        <label for="productId">Buscar por Product ID:</label>
+        <input type="text" id="productId" name="productId">
+        <button type="submit">Buscar</button>
+    </form>
+    <div id="productInfo"></div>
+
+    <script>
+        document.getElementById('productInfoForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const productId = document.getElementById('productId').value.trim();
+            fetchProductInfo(productId);
+        });
+
+        function fetchProductInfo(product_id = '') {
+            let url = '/fetch_product_info';
+            if (product_id !== '') {
+                url += '?product_id=' + encodeURIComponent(product_id);
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    const productInfoDiv = document.getElementById('productInfo');
+                    productInfoDiv.innerHTML = '';  // Clear previous content
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const tbody = document.createElement('tbody');
+
+                    const headerRow = document.createElement('tr');
+                    ['PRODUCT_ID', 'PRODUCT_NAME', 'PRODUCT_DESCRIPTION', 'CATEGORY_ID', 'WEIGHT_CLASS', 'WARRANTY_PERIOD', 'SUPPLIER_ID', 'PRODUCT_STATUS', 'LIST_PRICE', 'MIN_PRICE', 'CATALOG_URL'].forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.innerText = headerText;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    data.forEach(info => {
+                        const row = document.createElement('tr');
+                        for (key in info) {
+                            const td = document.createElement('td');
+                            td.innerText = info[key];
+                            row.appendChild(td);
+                        }
+                        tbody.appendChild(row);
+                    });
+                    table.appendChild(tbody);
+                    productInfoDiv.appendChild(table);
+                })
+                .catch(error => console.error('Error fetching product information:', error));
+        }
+
+        document.getElementById('addProductForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/add_product', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert('Producto agregado exitosamente');
+                }
+            })
+            .catch(error => console.error('Error al agregar producto:', error));
+        });
+    </script>
+
+    <h2>Agregar Nuevo Producto</h2>
+       <form id="addProductForm" action="/add_product" method="POST">>
+           <label for="productId">PRODUCT_ID:</label>
+           <input type="text" id="productId" name="productId" required><br>
+           <label for="productName">PRODUCT_NAME:</label>
+           <input type="text" id="productName" name="productName" required><br>
+           <label for="productDescription">PRODUCT_DESCRIPTION:</label>
+           <input type="text" id="productDescription" name="productDescription" required><br>
+           <label for="categoryId">CATEGORY_ID:</label>
+           <input type="text" id="categoryId" name="categoryId" required><br>
+           <label for="weightClass">WEIGHT_CLASS:</label>
+           <input type="text" id="weightClass" name="weightClass" required><br>
+           <label for="warrantyPeriod">WARRANTY_PERIOD:</label>
+           <input type="text" id="warrantyPeriod" name="warrantyPeriod" required><br>
+           <label for="supplierId">SUPPLIER_ID:</label>
+           <input type="text" id="supplierId" name="supplierId" required><br>
+           <label for="productStatus">PRODUCT_STATUS:</label>
+           <input type="text" id="productStatus" name="productStatus" required><br>
+           <label for="listPrice">LIST_PRICE:</label>
+           <input type="text" id="listPrice" name="listPrice" required><br>
+           <label for="minPrice">MIN_PRICE:</label>
+           <input type="text" id="minPrice" name="minPrice" required><br>
+           <label for="catalogUrl">CATALOG_URL:</label>
+           <input type="text" id="catalogUrl" name="catalogUrl" required><br>
+           <input type="submit" value="Agregar Producto">
+       </form>
+       
+       <h2>Eliminar Producto</h2>
+           <form id="deleteProductForm" action="/delete_product" method="POST">
+               <label for="deleteProductId">ID del Producto a Eliminar:</label>
+               <input type="text" id="deleteProductId" name="deleteProductId" required><br>
+               <input type="submit" value="Eliminar Producto">
+           </form>
+
+</body>
+</html>

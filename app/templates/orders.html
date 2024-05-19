@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <button onclick="location.href='/'">Volver al Inicio</button>
+    <title>Orders</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Orders</h1>
+    <form id="orderForm">
+        <label for="orderId">ID de Orden:</label>
+        <input type="text" id="orderId" name="orderId">
+        <button type="button" onclick="fetchOrders()">Buscar</button>
+    </form>
+    <div id="orders"></div>
+
+    <h2>Eliminar Orden</h2>
+    <form id="deleteOrderForm">
+        <label for="deleteOrderId">ID de Orden a Eliminar:</label>
+        <input type="text" id="deleteOrderId" name="deleteOrderId">
+        <button type="button" onclick="deleteOrder()">Eliminar</button>
+    </form>
+
+    <h2>Agregar Nueva Orden</h2>
+    <form id="addOrderForm">
+        <!-- Campos para la tabla orders -->
+        <label for="orderIdAdd">ORDER_ID:</label>
+        <input type="text" id="orderIdAdd" name="order_id" required><br>
+        <label for="orderDate">ORDER_DATE:</label>
+        <input type="text" id="orderDate" name="order_date" required><br>
+        <label for="orderMode">ORDER_MODE:</label>
+        <input type="text" id="orderMode" name="order_mode" required><br>
+        <label for="customerIdAdd">CUSTOMER_ID:</label>
+        <input type="text" id="customerIdAdd" name="customer_id" required><br>
+        <label for="orderStatus">ORDER_STATUS:</label>
+        <input type="text" id="orderStatus" name="order_status" required><br>
+        <label for="orderTotal">ORDER_TOTAL:</label>
+        <input type="text" id="orderTotal" name="order_total" required><br>
+        <label for="salesRepId">SALES_REP_ID:</label>
+        <input type="text" id="salesRepId" name="sales_rep_id" required><br>
+        <label for="promotionId">PROMOTION_ID:</label>
+        <input type="text" id="promotionId" name="promotion_id" required><br>
+        
+        <!-- Campos para la tabla order_items -->
+        <label for="lineItemId">LINE_ITEM_ID:</label>
+        <input type="text" id="lineItemId" name="line_item_id" required><br>
+        <label for="productId">PRODUCT_ID:</label>
+        <input type="text" id="productId" name="product_id" required><br>
+        <label for="unitPrice">UNIT_PRICE:</label>
+        <input type="text" id="unitPrice" name="unit_price" required><br>
+        <label for="quantity">QUANTITY:</label>
+        <input type="text" id="quantity" name="quantity" required><br>
+        
+        <button type="button" onclick="addOrder()">Agregar Orden</button>
+    </form>
+
+    <script>
+        function fetchOrders() {
+            const orderId = document.getElementById('orderId').value.trim();
+            const url = orderId ? `/fetch_orders?order_id=${orderId}` : '/fetch_orders';
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const ordersDiv = document.getElementById('orders');
+                    ordersDiv.innerHTML = '';  // Clear previous content
+
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const tbody = document.createElement('tbody');
+
+                    const headerRow = document.createElement('tr');
+                    ['ORDER_ID', 'ORDER_DATE', 'ORDER_MODE', 'CUSTOMER_ID', 'ORDER_STATUS', 'ORDER_TOTAL', 'SALES_REP_ID', 'PROMOTION_ID'].forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.innerText = headerText;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    data.forEach(order => {
+                        const row = document.createElement('tr');
+                        Object.values(order).forEach(value => {
+                            const td = document.createElement('td');
+                            td.innerText = value;
+                            row.appendChild(td);
+                        });
+                        tbody.appendChild(row);
+                    });
+                    table.appendChild(tbody);
+                    ordersDiv.appendChild(table);
+                })
+                .catch(error => console.error('Error fetching orders:', error));
+        }
+
+        function deleteOrder() {
+            const orderId = document.getElementById('deleteOrderId').value.trim();
+
+            if (orderId) {
+                fetch('/delete_order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `order_id=${orderId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Orden eliminada exitosamente.');
+                        document.getElementById('deleteOrderForm').reset();
+                        fetchOrders();  // Actualizar la lista de órdenes
+                    } else {
+                        alert(`Error al eliminar la orden: ${data.error}`);
+                    }
+                })
+                .catch(error => console.error('Error deleting order:', error));
+            } else {
+                alert('Por favor, ingrese un ID de orden válido.');
+            }
+        }
+
+        function addOrder() {
+            const orderId = document.getElementById('orderIdAdd').value.trim();
+            const orderDate = document.getElementById('orderDate').value.trim();
+            const orderMode = document.getElementById('orderMode').value.trim();
+            const customerId = document.getElementById('customerIdAdd').value.trim();
+            const orderStatus = document.getElementById('orderStatus').value.trim();
+            const orderTotal = document.getElementById('orderTotal').value.trim();
+            const salesRepId = document.getElementById('salesRepId').value.trim();
+            const promotionId = document.getElementById('promotionId').value.trim();
+            
+            const lineItemId = document.getElementById('lineItemId').value.trim();
+            const productId = document.getElementById('productId').value.trim();
+            const unitPrice = document.getElementById('unitPrice').value.trim();
+            const quantity = document.getElementById('quantity').value.trim();
+
+            if (orderId && orderDate && orderMode && customerId && orderStatus && orderTotal && salesRepId && promotionId &&
+                lineItemId && productId && unitPrice && quantity) {
+                fetch('/add_order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `order_id=${orderId}&order_date=${orderDate}&order_mode=${orderMode}&customer_id=${customerId}&order_status=${orderStatus}&order_total=${orderTotal}&sales_rep_id=${salesRepId}&promotion_id=${promotionId}&line_item_id=${lineItemId}&product_id=${productId}&unit_price=${unitPrice}&quantity=${quantity}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Orden agregada exitosamente.');
+                        document.getElementById('addOrderForm').reset();
+                        fetchOrders();  // Actualizar la lista de órdenes
+                    } else {
+                        alert(`Error al agregar la orden: ${data.error}`);
+                    }
+                })
+                .catch(error => console.error('Error adding order:', error));
+            } else {
+                alert('Por favor, complete todos los campos del formulario.');
+            }
+        }
+    </script>
+
+</body>
+</html>
