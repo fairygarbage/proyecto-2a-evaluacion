@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  mysql_node1:
+    image: mysql:latest
+    container_name: mysql_node1
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd
+    ports:
+      - "3301:3306"
+    networks:
+      - db_network
+
+  mysql_node2:
+    image: mysql:latest
+    container_name: mysql_node2
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd
+    ports:
+      - "3302:3306"
+    networks:
+      - db_network
+
+  mysql_node3:
+    image: mysql:latest
+    container_name: mysql_node3
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd
+    ports:
+      - "3303:3306"
+    networks:
+      - db_network
+
+networks:
+  db_network:
+    driver: bridge
+
